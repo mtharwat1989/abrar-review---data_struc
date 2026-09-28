@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>منصة أبرار الحربي | مراجعة Data Structures – Linked Lists &amp; Big O</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme:{ extend:{ colors:{ gold:{DEFAULT:'#D4AF37',light:'#F5D67B',dark:'#8C6A00'}, royal:{900:'#080D29',800:'#0E1642',700:'#162066',600:'#1E2C8A'} }, fontFamily:{ cairo:['Cairo','sans-serif'], taj:['Tajawal','sans-serif'], pop:['Poppins','sans-serif'] } } } }
+</script>
+<style>
+*{font-family:'Cairo','Tajawal',sans-serif}
+body{background:#070B24;color:#fff;overflow-x:hidden}
+.gold-text{background:linear-gradient(135deg,#FFF6C8 0%,#F5D67B 20%,#D4AF37 45%,#FFF0A0 60%,#B8860B 80%,#F5D67B 100%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% auto;animation:shine 4s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.glass{background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.03));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(212,175,55,.28)}
+.gold-border{position:relative;border:1px solid rgba(212,175,55,.5)}
+.gold-border::before{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg,#F5D67B,#8C6A00,#FFF6C8,#B8860B);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.9}
+.btn-gold{background:linear-gradient(135deg,#F8E28A 0%,#D4AF37 35%,#A67C00 70%,#F5D67B 100%);background-size:200% auto;color:#1a1400;font-weight:900;box-shadow:0 8px 30px rgba(212,175,55,.4),inset 0 1px 0 rgba(255,255,255,.7);transition:.35s}
+.btn-gold:hover{background-position:left center;transform:translateY(-2px) scale(1.02);box-shadow:0 15px 45px rgba(212,175,55,.6)}
+.btn-ghost{border:1px solid rgba(212,175,55,.4);transition:.3s}
+.btn-ghost:hover{background:rgba(212,175,55,.12);border-color:#D4AF37}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.35;pointer-events:none;z-index:0;animation:float 12s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-40px) scale(1.08)}}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.opt{transition:.25s;text-align:right;width:100%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;position:relative;overflow:hidden}
+.opt:hover:not(:disabled){border-color:#D4AF37;background:rgba(212,175,55,.1);transform:translateY(-2px)}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:#22c55e!important;background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.1))!important;box-shadow:0 0 25px rgba(34,197,94,.4)}
+.opt.wrong{border-color:#ef4444!important;background:linear-gradient(135deg,rgba(239,68,68,.25),rgba(239,68,68,.1))!important;box-shadow:0 0 25px rgba(239,68,68,.35)}
+.opt.dim{opacity:.45}
+.opt-letter{flex-shrink:0;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;background:linear-gradient(135deg,#D4AF37,#8C6A00);color:#1a1400}
+.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+.pop{animation:pop .5s cubic-bezier(.68,-.55,.265,1.55)}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.glow-pulse{animation:glowP 2s infinite}
+@keyframes glowP{0%,100%{box-shadow:0 0 20px rgba(212,175,55,.4)}50%{box-shadow:0 0 45px rgba(212,175,55,.8)}}
+.progress-gold{background:linear-gradient(90deg,#8C6A00,#D4AF37,#FFF6C8,#D4AF37);background-size:200% auto;animation:shine 2.5s linear infinite}
+.pal-btn{width:42px;height:42px;border-radius:12px;font-weight:800;font-size:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);transition:.25s}
+.pal-btn:hover{transform:scale(1.1);border-color:#D4AF37}
+.pal-btn.current{border:2px solid #F5D67B;box-shadow:0 0 18px rgba(212,175,55,.7);transform:scale(1.12)}
+.pal-btn.ok{background:linear-gradient(135deg,#16a34a,#15803d);border-color:#22c55e}
+.pal-btn.bad{background:linear-gradient(135deg,#dc2626,#991b1b);border-color:#ef4444}
+.pal-btn.skip{background:rgba(245,214,123,.2);border-color:#D4AF37}
+.ar-box{background:linear-gradient(135deg,rgba(212,175,55,.16),rgba(212,175,55,.06));border:1px dashed rgba(212,175,55,.6);border-radius:14px}
+.feedback-ok{background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(34,197,94,.08));border:1px solid #22c55e}
+.feedback-bad{background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(239,68,68,.08));border:1px solid #ef4444}
+.score-ring{transform:rotate(-90deg)}
+.score-ring circle{transition:stroke-dashoffset 2s ease}
+.trophy-float{animation:trophyF 3s ease-in-out infinite}
+@keyframes trophyF{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-14px) rotate(3deg)}}
+#celebrateOverlay{transition:.4s}
+.crown-shine{position:relative;overflow:hidden}
+.crown-shine::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:sheen 3s infinite}
+@keyframes sheen{0%{left:-80%}60%,100%{left:130%}}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0E1642}
+::-webkit-scrollbar-thumb{background:linear-gradient(#D4AF37,#8C6A00);border-radius:10px}
+.toast{animation:slideIn .4s cubic-bezier(.68,-.55,.265,1.55)}
+@keyframes slideIn{from{transform:translateY(30px) scale(.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@media print{body *{visibility:hidden}#reportSection,#reportSection *{visibility:visible}#reportSection{position:absolute;top:0;right:0;left:0;background:#fff!important;color:#000!important} .no-print{display:none!important}}
+.chapter-badge{background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.4)}
+.hero-pattern{background-image:radial-gradient(rgba(212,175,55,.15) 1px,transparent 1px);background-size:22px 22px}
+.streak-fire{animation:fire .8s infinite alternate}
+@keyframes fire{from{transform:scale(1)}to{transform:scale(1.15) rotate(-5deg)}}
+.code{display:block;white-space:pre;overflow-x:auto;font-family:ui-monospace,Menlo,Consolas,monospace!important;font-size:15px;line-height:1.7;background:rgba(0,0,0,.45);border:1px solid rgba(212,175,55,.3);border-radius:12px;padding:12px 16px;margin:10px 0;color:#F5D67B;font-weight:600}
+.opt span[dir=ltr],#reportList [dir=ltr]{white-space:pre-wrap}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{top:env(safe-area-inset-top,0px)!important}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="blob" style="width:520px;height:520px;background:#D4AF37;top:-150px;right:-150px"></div>
+<div class="blob" style="width:420px;height:420px;background:#1E2C8A;bottom:10%;left:-120px;animation-delay:2s"></div>
+<div class="blob" style="width:300px;height:300px;background:#7C3AED;top:40%;right:30%;opacity:.2;animation-delay:4s"></div>
+
+<!-- PRELOADER -->
+<div id="preloader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#070B24] transition-opacity duration-700">
+<div class="w-24 h-24 rounded-3xl btn-gold flex items-center justify-center text-5xl glow-pulse">👑</div>
+<h1 class="mt-6 text-2xl font-black gold-text">منصة أبرار الحربي الذهبية</h1>
+<p class="text-white/60 mt-2">جاري تجهيز تجربة ملكية تليق ببطلة هياكل البيانات...</p>
+<div class="w-64 h-2 mt-6 rounded-full bg-white/10 overflow-hidden"><div id="loadBar" class="h-full progress-gold rounded-full" style="width:0%"></div></div>
+</div>
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 glass border-b border-[#D4AF37]/30">
+<div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-2xl btn-gold flex items-center justify-center text-2xl crown-shine">👑</div>
+<div><div class="font-black text-lg leading-none">أبرار <span class="gold-text">الحربي</span></div><div class="text-[12px] text-white/60">Data Structures • Linked Lists &amp; Big O • كويز التفوق</div></div>
+</div>
+<div class="hidden md:flex items-center gap-2 text-sm">
+<a href="#home" class="px-4 py-2 rounded-xl hover:bg-white/10 transition">الرئيسية</a>
+<a href="#quizSection" class="px-4 py-2 rounded-xl hover:bg-white/10 transition">الاختبار</a>
+<a href="#reportSection" class="px-4 py-2 rounded-xl hover:bg-white/10 transition">التقرير</a>
+</div>
+<div class="flex items-center gap-2">
+<div class="hidden sm:flex items-center gap-2 glass rounded-xl px-3 py-2 text-sm">⚡<span id="hdrScore" class="font-black">0</span><span class="text-white/109">نقطة</span></div>
+<button onclick="toggleSound()" id="soundBtn" class="w-11 h-11 rounded-xl btn-ghost flex items-center justify-center text-xl">🔊</button>
+</div>
+</div>
+<div class="h-1 bg-white/10"><div id="topProgress" class="h-full progress-gold transition-all duration-500" style="width:0%"></div></div>
+</header>
+
+<!-- HERO -->
+<section id="home" class="relative z-10 max-w-7xl mx-auto px-4 pt-10 pb-6">
+<div class="grid lg:grid-cols-2 gap-6 items-stretch">
+<div class="glass gold-border rounded-3xl p-7 md:p-10 relative overflow-hidden hero-pattern">
+<div class="absolute top-0 left-0 w-full h-1 progress-gold"></div>
+<div class="inline-flex items-center gap-2 chapter-badge rounded-full px-4 py-2 text-sm font-bold text-[#F5D67B]"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Linked Lists &amp; Big O • مراجعة شاملة استعدادًا للكويز • 109 أسئلة</div>
+<h1 class="text-3xl md:text-5xl font-black leading-[1.25] mt-5">أهلاً بالبطلة <span class="gold-text">أبرار الحربي</span> 🏆<br><span class="text-xl md:text-2xl font-bold text-white/90">رحلتك الملكية نحو العلامة الكاملة في Data Structures</span></h1>
+<p class="text-white/70 mt-4 leading-8">أجيبي على الأسئلة التفاعلية بالترتيب كما في المراجعة. لو أجبتِ صح سأقول لكِ <b class="text-[#F5D67B]">«أحسنتِ أبرار كمّلي يا بطلةة»</b> مع احتفالات وأصوات تحفيزية 🎉 ولو أخطأتِ سأقول <b>«حاولي مرة أخرى»</b> وأمنحكِ فرصة للتعلم. بجانب كل سؤال زر <b class="text-[#F5D67B]">🌐 ترجم</b> يظهر الترجمة العربية بجانب السؤال والإجابات مباشرة. وفي النهاية تقرير ملكي مفصّل.</p>
+<div class="flex flex-wrap gap-3 mt-6">
+<button onclick="scrollToQuiz()" class="btn-gold rounded-2xl px-8 py-4 text-lg">▶ ابدأ التحدي الآن</button>
+<button onclick="translateAllToggle()" class="btn-ghost rounded-2xl px-6 py-4 font-bold">🌐 ترجمة الكل</button>
+<button onclick="document.getElementById('paletteCard').scrollIntoView({behavior:'smooth'})" class="btn-ghost rounded-2xl px-6 py-4 font-bold">🗺️ خريطة الأسئلة</button>
+</div>
+<div class="grid grid-cols-3 gap-3 mt-7">
+<div class="rounded-2xl bg-white/5 border border-white/10 p-4 text-center"><div class="text-2xl font-black gold-text">109</div><div class="text-xs text-white/60 font-bold">سؤالًا كاملًا</div></div>
+<div class="rounded-2xl bg-white/5 border border-white/10 p-4 text-center"><div class="text-2xl font-black gold-text">6</div><div class="text-xs text-white/60 font-bold">أنواع الأسئلة</div></div>
+<div class="rounded-2xl bg-white/5 border border-white/10 p-4 text-center"><div class="text-2xl font-black gold-text" id="bestScoreHero">0%</div><div class="text-xs text-white/60 font-bold">أفضل نتيجة لك</div></div>
+</div>
+</div>
+
+<div class="flex flex-col gap-6">
+<div class="glass gold-border rounded-3xl p-6 text-center relative overflow-hidden crown-shine">
+<div class="trophy-float text-7xl">🏆</div>
+<h3 class="font-black text-xl mt-2">بطاقة البطلة الذهبية</h3>
+<div class="flex items-center justify-center gap-3 mt-4">
+<div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black btn-gold">أ</div>
+<div class="text-right"><div class="font-black">أبرار الحربي</div><div class="text-xs text-[#F5D67B] font-bold">⭐ المستوى <span id="levelNum">1</span> • <span id="xpNum">0</span> XP</div><div class="w-40 h-2 bg-white/10 rounded-full mt-2 overflow-hidden"><div id="xpBar" class="h-full progress-gold" style="width:0%"></div></div></div>
+</div>
+<div class="grid grid-cols-3 gap-2 mt-5 text-sm">
+<div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="font-black text-lg" id="statCorrect">0</div><div class="text-green-400 text-xs font-bold">✅ صحيحة</div></div>
+<div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="font-black text-lg" id="statWrong">0</div><div class="text-red-400 text-xs font-bold">❌ خاطئة</div></div>
+<div class="rounded-xl bg-black/30 border border-white/10 p-3"><div class="font-black text-lg" id="statStreak">0 🔥</div><div class="text-orange-300 text-xs font-bold">سلسلة التوهج</div></div>
+</div>
+<div class="mt-4 flex items-center justify-center gap-2 text-sm bg-black/30 rounded-xl p-3 border border-[#D4AF37]/30">⏱️ الوقت: <b id="timerHero">00:00</b> <span class="text-white/40">|</span> <span>السؤال <b id="heroQpos" class="text-[#F5D67B]">1</b> / 109</span></div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+<button onclick="setMode('train')" id="modeTrain" class="glass rounded-2xl p-5 text-right border-2 border-[#D4AF37] transition hover:scale-[1.02]">
+<div class="text-2xl">🎓</div><div class="font-black mt-1">وضع التدريب البطولي</div><div class="text-xs text-white/60 mt-1 leading-5">محاولات للتعلم + شرح + التقييم على أول إجابة</div><div class="text-[11px] mt-2 font-black text-green-400">● مُفعّل الآن</div>
+</button>
+<button onclick="setMode('exam')" id="modeExam" class="glass rounded-2xl p-5 text-right border-2 border-transparent transition hover:scale-[1.02]">
+<div class="text-2xl">⏱️</div><div class="font-black mt-1">وضع الكويز الحقيقي</div><div class="text-xs text-white/60 mt-1 leading-5">محاولة واحدة فقط بدون رجعة مثل الاختبار</div><div class="text-[11px] mt-2 font-black text-white/40" id="examLabel">○ اضغطي للتفعيل</div>
+</button>
+</div>
+</div>
+</div>
+
+<!-- QUOTE -->
+<div class="mt-6 glass rounded-2xl px-6 py-4 flex items-center gap-4 border-r-4 border-[#D4AF37]">
+<div class="text-3xl">💬</div><div><div class="font-black text-[#F5D67B]" id="quoteText">«القائمة المترابطة: كل عقدة تحمل بيانات ومرجعًا للعقدة التالية»</div><div class="text-xs text-white/109">حكمة تحفيزية تتغير كل 8 ثوانٍ لإبقائك مشتعلًا يا أبرار 🔥</div></div>
+</div>
+</section>
+
+<!-- QUIZ -->
+<section id="quizSection" class="relative z-10 max-w-7xl mx-auto px-4 py-6">
+<div class="grid lg:grid-cols-[1fr_300px] gap-6 items-start">
+
+<div class="glass gold-border rounded-3xl overflow-hidden">
+<div class="p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 bg-black/20 border-b border-[#D4AF37]/20">
+<div class="flex items-center gap-2 flex-wrap">
+<span id="qCounter" class="btn-gold rounded-xl px-4 py-2 text-sm">السؤال 1 / 109</span>
+<span id="qPageBadge" class="rounded-xl px-3 py-2 text-sm font-bold bg-white/10 border border-white/15">📄 Part 1</span>
+<span id="qTypeBadge" class="rounded-xl px-3 py-2 text-sm font-bold bg-purple-500/20 border border-purple-400/40 text-purple-200">صح / خطأ</span>
+<span id="attemptBadge" class="rounded-xl px-3 py-2 text-sm font-bold bg-white/10 border border-white/15 hidden">المحاولة 2</span>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="toggleBookmark()" id="bmBtn" class="w-10 h-10 rounded-xl btn-ghost flex items-center justify-center" title="حفظ في المفضلة">🤍</button>
+<button onclick="toggleTranslateCurrent()" id="trBtn" class="rounded-xl px-4 py-2.5 font-black text-sm btn-gold">🌐 ترجم</button>
+</div>
+</div>
+
+<div class="h-2 bg-white/10"><div id="quizProgress" class="h-full progress-gold transition-all duration-500" style="width:2%"></div></div>
+
+<div id="qCard" class="p-5 md:p-8">
+<div class="flex items-center gap-2 text-xs text-white/109 font-bold mb-3">📖 نص السؤال الأصلي كما في المراجعة (بالترتيب) — أجب لتكمل التحدي</div>
+<h2 id="qEn" dir="ltr" class="text-left font-pop font-semibold text-lg md:text-2xl leading-9 bg-black/30 border border-white/10 rounded-2xl p-5"></h2>
+<div id="qArBox" class="ar-box p-4 mt-3 hidden pop"><div class="text-[11px] font-black text-[#F5D67B] mb-1">🇸🇦 الترجمة العربية المباشرة:</div><div id="qAr" class="font-bold leading-8 text-[15px] md:text-lg"></div></div>
+<div id="optsGrid" class="grid gap-3 mt-5"></div>
+<div id="feedbackBox" class="mt-5 hidden rounded-2xl p-5 text-center font-black text-lg pop"></div>
+<div id="explainBox" class="mt-3 hidden rounded-2xl p-4 bg-blue-500/10 border border-blue-400/40 text-sm leading-7"></div>
+<div class="flex flex-wrap items-center justify-between gap-3 mt-6">
+<div class="flex gap-2">
+<button onclick="prevQ()" class="btn-ghost rounded-xl px-5 py-3 font-bold">→ السابق</button>
+<button onclick="nextQ()" class="btn-gold rounded-xl px-7 py-3">التالي ←</button>
+</div>
+<div class="flex gap-2">
+<button onclick="skipQ()" class="btn-ghost rounded-xl px-4 py-3 text-sm font-bold">⏭️ تخطي</button>
+<button onclick="confirmFinish()" class="rounded-xl px-5 py-3 text-sm font-black bg-gradient-to-l from-red-500 to-orange-500 hover:scale-105 transition shadow-lg">🏁 إنهاء و عرض النتيجة</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="flex flex-col gap-5">
+<div id="paletteCard" class="glass rounded-3xl p-5 gold-border">
+<h3 class="font-black flex items-center gap-2"><span class="text-xl">🗺️</span> خريطة المعركة <span class="text-xs font-bold text-white/109">(109 سؤالًا)</span></h3>
+<div class="flex flex-wrap gap-2 mt-3 text-[11px] font-bold">
+<button onclick="setFilter('all')" class="filter-btn px-3 py-1.5 rounded-lg bg-[#D4AF37] text-black" data-f="all">الكل</button>
+<button onclick="setFilter('un')" class="filter-btn px-3 py-1.5 rounded-lg bg-white/10" data-f="un">غير مجاب</button>
+<button onclick="setFilter('ok')" class="filter-btn px-3 py-1.5 rounded-lg bg-white/10" data-f="ok">صح</button>
+<button onclick="setFilter('bad')" class="filter-btn px-3 py-1.5 rounded-lg bg-white/10" data-f="bad">خطأ</button>
+<button onclick="setFilter('bm')" class="filter-btn px-3 py-1.5 rounded-lg bg-white/10" data-f="bm">⭐ مفضلة</button>
+</div>
+<div id="palette" class="grid grid-cols-5 gap-2 mt-4 max-h-[380px] overflow-y-auto p-1"></div>
+<div class="mt-4 text-xs leading-6 text-white/60 bg-black/30 rounded-xl p-3 border border-white/10">🟩 صح من أول مرة • 🟥 يحتاج مراجعة • 🟨 متخطّى • ✨ الذهبي = سؤالك الحالي<br>💡 التقييم النهائي يعتمد على <b class="text-[#F5D67B]">أول إجابة</b> في وضع التدريب.</div>
+<button onclick="confirmFinish()" class="btn-gold w-full rounded-xl py-3 mt-3 font-black">📊 اعرض تقرير أبرار النهائي</button>
+</div>
+
+<div class="glass rounded-3xl p-5">
+<h3 class="font-black">⚔️ أسلحة البطلة</h3>
+<div class="grid grid-cols-2 gap-2 mt-3 text-sm font-bold">
+<button onclick="translateAllToggle()" class="btn-ghost rounded-xl py-3">🌐 ترجمة الكل</button>
+<button onclick="toggleSound()" class="btn-ghost rounded-xl py-3">🔊 الصوت</button>
+<button onclick="restartQuiz()" class="btn-ghost rounded-xl py-3">🔄 من جديد</button>
+<button onclick="reviewBookmarks()" class="btn-ghost rounded-xl py-3">⭐ المفضلة</button>
+</div>
+<div class="mt-3 rounded-xl bg-black/30 border border-[#D4AF37]/30 p-3 text-xs leading-6"><b class="text-[#F5D67B]">نصيحة ذهبية يا أبرار:</b> استخدمي لوحة المفاتيح: <b>1-4</b> للإجابة • <b>T</b> للترجمة • <b>→ ←</b> للتنقل.</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- REPORT -->
+<section id="reportSection" class="relative z-10 max-w-7xl mx-auto px-4 py-8 hidden">
+<div class="glass gold-border rounded-3xl p-6 md:p-10 text-center relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 progress-gold"></div>
+<div class="trophy-float text-8xl">🏆</div>
+<h2 class="text-3xl md:text-4xl font-black mt-3">تقرير البطلة <span class="gold-text">أبرار الحربي</span></h2>
+<p id="reportSubtitle" class="text-white/60 mt-2 font-bold"></p>
+<div class="grid md:grid-cols-3 gap-6 mt-8 items-center">
+<div class="flex flex-col items-center">
+<div class="relative w-52 h-52">
+<svg class="score-ring w-52 h-52" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12"/><circle id="scoreCircle" cx="60" cy="60" r="52" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5D67B"/><stop offset="50%" stop-color="#D4AF37"/><stop offset="100%" stop-color="#FFF6C8"/></linearGradient></defs></svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center"><div id="finalPct" class="text-4xl font-black gold-text">0%</div><div class="text-xs text-white/109 font-bold">النسبة النهائية</div></div>
+</div>
+<div id="gradeBadge" class="mt-3 px-6 py-2 rounded-full font-black btn-gold"></div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="rounded-2xl bg-green-500/10 border border-green-500/40 p-5"><div class="text-3xl font-black text-green-400" id="rCorrect">0</div><div class="text-xs font-bold text-green-300">✅ إجابات صحيحة</div></div>
+<div class="rounded-2xl bg-red-500/10 border border-red-500/40 p-5"><div class="text-3xl font-black text-red-400" id="rWrong">0</div><div class="text-xs font-bold text-red-300">❌ تحتاج مراجعة</div></div>
+<div class="rounded-2xl bg-white/5 border border-white/15 p-5"><div class="text-3xl font-black gold-text" id="rTime">00:00</div><div class="text-xs font-bold text-white/60">⏱️ زمن الإنجاز</div></div>
+<div class="rounded-2xl bg-white/5 border border-white/15 p-5"><div class="text-3xl font-black gold-text" id="rStreak">0</div><div class="text-xs font-bold text-white/60">🔥 أفضل سلسلة</div></div>
+</div>
+<div class="glass rounded-2xl p-4">
+<canvas id="chartDoughnut" height="220"></canvas>
+<div class="mt-2 text-xs text-white/109 font-bold">توزيع الأداء: صح / خطأ / متخطّى</div>
+<hr class="border-white/10 my-3">
+<canvas id="chartBars" height="220"></canvas>
+<div class="mt-2 text-xs text-white/109 font-bold">الأداء حسب القسم: صح/خطأ • اختياري • كود • Big O</div>
+</div>
+</div>
+<div id="finalMessage" class="mt-6 text-xl font-black leading-9 rounded-2xl p-5 feedback-ok"></div>
+<div class="flex flex-wrap justify-center gap-3 mt-6 no-print">
+<button onclick="showOnlyWrong=false;renderReportList();toggleWrongBtn(this)" class="btn-gold rounded-xl px-6 py-3 font-black">📋 عرض الكل (109)</button>
+<button onclick="showOnlyWrong=true;renderReportList();toggleWrongBtn(this)" class="btn-ghost rounded-xl px-6 py-3 font-bold">❌ مراجعة الأخطاء فقط</button>
+<button onclick="restartQuiz()" class="btn-ghost rounded-xl px-6 py-3 font-bold">🔄 إعادة الاختبار</button>
+<button onclick="window.print()" class="btn-ghost rounded-xl px-6 py-3 font-bold">🖨️ طباعة التقرير</button>
+<button onclick="shareResult()" class="btn-ghost rounded-xl px-6 py-3 font-bold">📤 مشاركة النتيجة</button>
+</div>
+</div>
+
+<div class="mt-6 flex items-center gap-3">
+<div class="flex-1 h-px bg-gradient-to-l from-transparent via-[#D4AF37] to-transparent"></div>
+<h3 class="font-black text-xl whitespace-nowrap">📝 كشف الدرجات التفصيلي <span class="text-sm text-white/109">مع الإجابات النموذجية</span></h3>
+<div class="flex-1 h-px bg-gradient-to-l from-transparent via-[#D4AF37] to-transparent"></div>
+</div>
+<div id="reportList" class="grid gap-4 mt-5"></div>
+</section>
+
+<footer class="relative z-10 max-w-7xl mx-auto px-4 pb-10 pt-4 text-center text-white/40 text-sm">
+<div class="glass rounded-2xl p-5">صُنع بفخر 👑 للبطل <b class="gold-text">أبرار الحربي</b> • مراجعة Linked Lists &amp; Big O Data Structures • بالتوفيق في الكويز يا بطلة 🚀<br><span class="text-xs">جميع الأسئلة الـ 109 موضوعة كما هي بالترتيب مع ترجمة فورية وتقرير ذكي</span></div>
+</footer>
+
+<!-- CELEBRATION TOAST -->
+<div id="toastWrap" class="fixed bottom-6 right-1/2 translate-x-1/2 z-[90] flex flex-col items-center gap-2 pointer-events-none w-[92%] max-w-md"></div>
+<div id="bigCheer" class="fixed inset-0 z-[95] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+<div class="glass gold-border rounded-3xl p-8 text-center max-w-md w-full pop crown-shine">
+<div class="text-7xl trophy-float" id="bigCheerEmoji">🎉</div>
+<h2 id="bigCheerTitle" class="text-2xl font-black gold-text mt-3">أحسنتِ أبرار كمّلي يا بطلةة! 🏆</h2>
+<p id="bigCheerSub" class="text-white/70 font-bold mt-2 text-sm leading-7"></p>
+<button onclick="closeCheer()" class="btn-gold rounded-xl px-8 py-3 mt-5 font-black">واصلي يا بطلة 🚀</button>
+</div>
+</div>
+
+<script>
+/* ================= DATA - 50 QUESTIONS EXACT ORDER ================= */
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+const BO=['O(1)','O(log n)','O(n)','O(n²)'];
+const TL={tf:'صح / خطأ • True / False',mc:'اختياري • Multiple Choice',trace:'تتبع الكود • Code Tracing',fill:'أكمل الكود • Complete the Code',write:'اكتب الكود • Write a Code',bigo:'تحليل Big O • Big O Analysis'};
+const PARTS=[[1,'Part 1 • True / False','tf'],[22,'Part 2 • Multiple Choice','mc'],[48,'Part 3 • Code Tracing','trace'],[60,'Part 4 • Complete the Code','fill'],[70,'Part 5 • Write a Code','write'],[80,'Part 6 • Big O Analysis','bigo'],[92,'Part 7 • Operation Counting','bigo'],[95,'Part 8 • Deletion Review','mc'],[100,'Part 9 • Complete Delete Method','fill'],[101,'Part 10 • Complete Code (MCQ)','fill'],[105,'Part 11 • Mixed Quiz','mc']];
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fq(s){return s.split('§').map((t,i)=>i%2?`<span class="code" dir="ltr">${esc(t)}</span>`:esc(t)).join('');}
+let _id=0;
+function Q(en,ar,o,c,ex,oar){const id=++_id;let p=PARTS[0];PARTS.forEach(x=>{if(id>=x[0])p=x;});const tf=!o;const oe=tf?['True','False']:o;const oa=tf?['صح','خطأ']:(oar||o.map(()=>''));return{id,page:p[1],tag:p[2],type:tf?'tf':'mcq',en:fq(en),ar,opts:{en:oe.map(esc),ar:oa},correct:c,ex:ex||(oe[c].length>60?'الإجابة الصحيحة هي الخيار '+'ABCD'[c]+' — راجعي الكود في الإجابة النموذجية.':'الإجابة الصحيحة: '+oe[c])};}
+const HP='head → 2 → 4 → 6 → null';
+const S74=`public void printAllNodes() {\n  LLnode helpPtr = head;\n  while (helpPtr != null) {\n    System.out.print(helpPtr.data + " ");\n    helpPtr = helpPtr.next;\n  }\n}`;
+const S77=`LLnode helpPtr = head;\nwhile (helpPtr != null) {\n  helpPtr = helpPtr.next;\n}`;
+const S78=`LLnode helpPtr = head;\nwhile (helpPtr != null) {\n  helpPtr.data = helpPtr.data + 10;\n  helpPtr = helpPtr.next;\n}`;
+const S79=`int count = 0;\nLLnode helpPtr = head;\nwhile (helpPtr != null) {\n  count++;\n  helpPtr = helpPtr.next;\n}`;
+const ADV='  helpPtr = helpPtr.next;\n';
+const QUESTIONS=[
+Q(`In a singly linked list, the next reference of the last node points to null.`,`في القائمة المترابطة المفردة، مرجع next في العقدة الأخيرة يشير إلى null.`,null,0),
+Q(`Each node in a singly linked list contains a reference to the previous node.`,`كل عقدة في القائمة المترابطة المفردة تحتوي على مرجع للعقدة السابقة.`,null,1,`خطأ: العقدة تحتوي على مرجع للعقدة التالية (next) وليس السابقة.`),
+Q(`The isEmpty() method in a singly linked list can be implemented as:§return head == null;§`,`يمكن تنفيذ الدالة isEmpty() في القائمة المترابطة المفردة كالتالي:`,null,0),
+Q(`When deleting a node from a linked list, the remaining elements must be shifted in the same way as elements in an array.`,`عند حذف عقدة من القائمة المترابطة يجب إزاحة العناصر المتبقية كما في المصفوفة.`,null,1,`خطأ: العقد لا تُزاح، بل تتغير الروابط بين العقد فقط.`),
+Q(`Array elements are stored in contiguous memory locations.`,`عناصر المصفوفة تُخزَّن في مواقع ذاكرة متجاورة.`,null,0),
+Q(`A simple loop that runs from 0 to n - 1 has a time complexity of O(n).`,`الحلقة البسيطة من 0 إلى n - 1 تعقيدها الزمني O(n).`,null,0,`صح: الحلقة تُنفَّذ تقريبًا n مرة.`),
+Q(`A loop using i += 2 has a time complexity of O(2n).`,`الحلقة التي تستخدم i += 2 تعقيدها الزمني O(2n).`,null,1,`خطأ: تُنفَّذ حوالي n/2 مرة والثوابت تُهمل في Big O، إذن O(n/2) = O(n).`),
+Q(`A loop that repeatedly doubles the value of i has a time complexity of O(log n).`,`الحلقة التي تضاعف قيمة i باستمرار تعقيدها الزمني O(log n).`,null,0,`صح: القيم 1, 2, 4, 8, 16, ... لذلك عدد التكرارات لوغاريتمي.`),
+Q(`Two nested loops, where each loop runs n times, have a time complexity of O(n).`,`حلقتان متداخلتان تُنفَّذ كل منهما n مرة، تعقيدهما الزمني O(n).`,null,1,`خطأ: n × n = n² إذن O(n²).`),
+Q(`O(n) + O(log n) simplifies to O(n).`,`المجموع O(n) + O(log n) يُبسَّط إلى O(n).`,null,0,`صح: n ينمو أسرع من log n فهو الحد المهيمن.`),
+Q(`O(n) + O(n²) simplifies to O(n²).`,`المجموع O(n) + O(n²) يُبسَّط إلى O(n²).`,null,0,`صح: n² ينمو أسرع من n.`),
+Q(`In a singly linked list, each node contains data and a reference to the next node.`,`في القائمة المترابطة المفردة، كل عقدة تحتوي على بيانات ومرجع للعقدة التالية.`,null,0),
+Q(`The head variable points to the first node in a linked list.`,`المتغير head يشير إلى أول عقدة في القائمة المترابطة.`,null,0),
+Q(`The statement below removes the first node from a linked list:§head = head.next;§`,`العبارة التالية تحذف أول عقدة من القائمة المترابطة:`,null,0),
+Q(`The statement below moves a pointer to the next node:§helpPtr = helpPtr.next;§`,`العبارة التالية تنقل المؤشر إلى العقدة التالية:`,null,0),
+Q(`The statement below moves a pointer two nodes forward:§helpPtr = helpPtr.next.next;§`,`العبارة التالية تنقل المؤشر عقدتين للأمام:`,null,0,`صح: بفضل عملية الإسناد يصبح helpPtr يشير إلى العقدة التي تبعد رابطين.`),
+Q(`The following method checks whether a linked list is empty:§public boolean isEmpty() {\n  return head == null;\n}§`,`الدالة التالية تتحقق مما إذا كانت القائمة المترابطة فارغة:`,null,0),
+Q(`Adding a node to the front of a linked list requires traversing the entire list.`,`إضافة عقدة إلى بداية القائمة المترابطة تتطلب المرور على القائمة بالكامل.`,null,1,`خطأ: تُربط العقدة الجديدة مباشرة بـ head.`),
+Q(`The Big O of accessing a specific element in an array by index is O(1).`,`تعقيد Big O للوصول إلى عنصر محدد في المصفوفة بالفهرس هو O(1).`,null,0),
+Q(`Printing all elements of an array requires O(n) time.`,`طباعة جميع عناصر المصفوفة تتطلب زمن O(n).`,null,0),
+Q(`If a function has a running-time expression of 9n + 4, its Big O is O(9n + 4).`,`إذا كان زمن تشغيل الدالة 9n + 4 فإن Big O يساوي O(9n + 4).`,null,1,`خطأ: الثوابت والحدود الصغرى تُهمل، إذن O(9n + 4) = O(n).`),
+Q(`If a singly linked list is empty and a new node is added as the first node, what should the next reference of the new node contain?`,`إذا كانت القائمة فارغة وأضفنا عقدة جديدة كأول عقدة، فماذا يجب أن يحتوي مرجع next لها؟`,['head','newNode','null','0'],2,`لا توجد عقدة بعدها، لذلك next = null.`),
+Q(`What is the data type of the next reference in a typical singly linked list node?`,`ما نوع بيانات المرجع next في عقدة القائمة المترابطة المفردة؟`,['int','String','LLNode','boolean'],2),
+Q(`Which of the following is considered a dynamic data structure?`,`أي مما يلي يُعد بنية بيانات ديناميكية؟`,['Array','Linked List','Integer','String'],1,null,['مصفوفة','قائمة مترابطة','عدد صحيح','نص']),
+Q(`Which statement correctly removes the first node from a singly linked list?`,`أي عبارة تحذف أول عقدة من القائمة المترابطة المفردة بشكل صحيح؟`,['head = head.next','head.next = head','head = null.next','head.next = null'],0),
+Q(`What is the Big O of the following code?§for (int i = 0; i < n; i++) {\n  System.out.println(i);\n}§`,`ما هو Big O للكود التالي؟`,BO,2),
+Q(`What is the Big O?§for (int i = 0; i < n; i += 2) {\n  System.out.println(i);\n}§`,`ما هو Big O؟`,BO,2,`الحلقة تُنفَّذ n/2 مرة والثوابت تُهمل: O(n).`),
+Q(`What is the Big O?§int i = 1;\nwhile (i < n) {\n  i = i * 2;\n}§`,`ما هو Big O؟`,BO,1,`المضاعفة المستمرة تعطي O(log n).`),
+Q(`What is the Big O?§for (int i = 0; i < n; i++) {\n  for (int j = 0; j < n; j++) {\n    System.out.println(i + j);\n  }\n}§`,`ما هو Big O؟`,BO,3,`حلقتان متداخلتان: n × n = O(n²).`),
+Q(`What is: O(n) + O(log n)?`,`ما ناتج: O(n) + O(log n)؟`,['O(log n)','O(n)','O(n log n)','O(n²)'],1,`الحد المهيمن هو O(n).`),
+Q(`What is: O(n) + O(n²)?`,`ما ناتج: O(n) + O(n²)؟`,['O(n)','O(log n)','O(n²)','O(n³)'],2,`الحد المهيمن هو O(n²).`),
+Q(`What is the Big O of: 3n² + 5n + 10?`,`ما هو Big O للتعبير: 3n² + 5n + 10؟`,['O(1)','O(n)','O(n²)','O(n³)'],2),
+Q(`What is the Big O of: 9n + 4?`,`ما هو Big O للتعبير: 9n + 4؟`,BO,2),
+Q(`Which statement has O(log n) complexity?`,`أي عبارة تعقيدها O(log n)؟`,['i++;','i += 2;','i = i * 2;','i = i + 1;'],2,`مضاعفة i تعطي نموًا لوغاريتميًا.`),
+Q(`Which variable normally points to the first node of a linked list?`,`أي متغير يشير عادةً إلى أول عقدة في القائمة المترابطة؟`,['tail','head','data','next'],1),
+Q(`What does the following statement do?§head = head.next;§`,`ماذا تفعل العبارة التالية؟`,['Adds a node','Deletes the first node','Deletes the last node','Moves two nodes forward'],1,null,['تضيف عقدة','تحذف أول عقدة','تحذف آخر عقدة','تتحرك عقدتين للأمام']),
+Q(`What does this statement accomplish?§help_ptr.next = help_ptr.next.next;§`,`ماذا تحقق هذه العبارة؟`,['Adds a node after help_ptr','Deletes the first node','Removes the node immediately after help_ptr','Moves help_ptr to the next node'],2,null,['تضيف عقدة بعد help_ptr','تحذف أول عقدة','تحذف العقدة التي تلي help_ptr مباشرة','تحرك help_ptr إلى العقدة التالية']),
+Q(`What does this statement do?§helpPtr = helpPtr.next;§`,`ماذا تفعل هذه العبارة؟`,['Deletes the next node','Moves the pointer to the next node','Creates a new node','Makes the list empty'],1,null,['تحذف العقدة التالية','تنقل المؤشر إلى العقدة التالية','تنشئ عقدة جديدة','تجعل القائمة فارغة']),
+Q(`Which condition is normally used to traverse all nodes?`,`أي شرط يُستخدم عادةً للمرور على جميع العقد؟`,['while (helpPtr == null)','while (helpPtr != null)','while (head == null)','while (helpPtr.data == null)'],1),
+Q(`What does this method return when the linked list is empty?§public boolean isEmpty() {\n  return head == null;\n}§`,`ماذا تُرجع هذه الدالة عندما تكون القائمة فارغة؟`,['false','0','true','null'],2),
+Q(`Which statement adds a new node to the front?`,`أي عبارة تضيف عقدة جديدة إلى بداية القائمة؟`,['head = head.next;','head = null;','head = new LLNode(value, head);','helpPtr = helpPtr.next;'],2),
+Q(`Consider:§${HP}§If head = head.next; is executed, what is the new list?`,`لديك القائمة أعلاه. إذا نُفِّذت head = head.next; فما القائمة الجديدة؟`,['2 → 4 → 6','4 → 6','2 → 6','6'],1),
+Q(`Consider:§${HP}§If help_ptr points to the node containing 2, what does help_ptr.next refer to?`,`إذا كان help_ptr يشير إلى العقدة 2، فإلى ماذا يشير help_ptr.next؟`,['Node 2','Node 4','Node 6','null'],1,null,['العقدة 2','العقدة 4','العقدة 6','null']),
+Q(`If help_ptr points to node 2 in:§2 → 4 → 6 → null§what does help_ptr.next.next refer to?`,`إذا كان help_ptr يشير إلى العقدة 2، فإلى ماذا يشير help_ptr.next.next؟`,['Node 2','Node 4','Node 6','null'],2,null,['العقدة 2','العقدة 4','العقدة 6','null']),
+Q(`Which operation changes the last node's next reference to indicate the end of the list?`,`أي عملية تغيّر مرجع next للعقدة الأخيرة للدلالة على نهاية القائمة؟`,['head = head.next;','helpPtr = helpPtr.next;','previous.next = null;','head = new LLNode();'],2),
+Q(`What is the complexity of traversing all nodes in a linked list?`,`ما تعقيد المرور على جميع عقد القائمة المترابطة؟`,BO,2),
+Q(`What is the complexity of adding a node directly to the front when head is available?`,`ما تعقيد إضافة عقدة مباشرة إلى البداية عندما يكون head متاحًا؟`,BO,0),
+Q(`Consider:§LLnode helpPtr = head;\nwhile (helpPtr != null) {\n  System.out.print(helpPtr.data + " ");\n  helpPtr = helpPtr.next;\n}§The list is:§head → 3 → 4 → 5 → null§What is the output?`,`ما هو الناتج؟`,['3 4 5','3 4','4 5','5 4 3'],0),
+Q(`Given:§head → 10 → 20 → 30 → null§Execute:§head = head.next;§What is the resulting list?`,`ما القائمة الناتجة بعد التنفيذ؟`,['20 → 30 → null','10 → 20 → 30 → null','10 → 30 → null','30 → null'],0),
+Q(`Given:§${HP}§Suppose:§LLnode helpPtr = head;§What does helpPtr.data contain?`,`ماذا يحتوي helpPtr.data؟`,['2','4','6','null'],0),
+Q(`Given:§${HP}§Execute:§LLnode helpPtr = head;\nhelpPtr = helpPtr.next;§Where does helpPtr point?`,`إلى أين يشير helpPtr؟`,['The node containing 2','The node containing 4','The node containing 6','null'],1,null,['العقدة التي تحتوي 2','العقدة التي تحتوي 4','العقدة التي تحتوي 6','null']),
+Q(`Given:§${HP}§Execute:§LLnode helpPtr = head;\nhelpPtr = helpPtr.next.next;§Where does helpPtr point?`,`إلى أين يشير helpPtr؟`,['The node containing 2','The node containing 4','The node containing 6','null'],2,null,['العقدة التي تحتوي 2','العقدة التي تحتوي 4','العقدة التي تحتوي 6','null']),
+Q(`Given:§${HP}§Execute:§LLnode helpPtr = head;\nhelpPtr.next = helpPtr.next.next;§What is the resulting list?`,`ما القائمة الناتجة؟`,['2 → 6 → null','4 → 6 → null','2 → 4 → null','2 → 4 → 6 → null'],0,`helpPtr يشير إلى 2، وhelpPtr.next هي 4 وhelpPtr.next.next هي 6. فيتغير رابط 2 ليشير مباشرة إلى 6.`),
+Q(`Given:§head → 5 → 10 → 15 → null§Execute:§head = head.next;§What is the result?`,`ما النتيجة؟`,['10 → 15 → null','5 → 15 → null','5 → 10 → null','15 → null'],0),
+Q(`Given:§head → 5 → 10 → 15 → null§Execute:§LLnode helpPtr = head;\nwhile (helpPtr != null) {\n  helpPtr.data = helpPtr.data + 10;\n  helpPtr = helpPtr.next;\n}§What is the final list?`,`ما القائمة النهائية؟`,['15 → 20 → 25 → null','5 → 10 → 15 → null','15 → 10 → 5 → null','10 → 20 → 25 → null'],0),
+Q(`Given:§head → 5 → 6 → 8 → 20 → null§The pointer traverses the entire list and increments a counter once for each node. What is the final count?`,`المؤشر يمر على القائمة كلها ويزيد عدّادًا مرة لكل عقدة. ما قيمة العدّاد النهائية؟`,['4','3','5','20'],0),
+Q(`Given:§head → 10 → 20 → 30 → null§What happens after:§head = null;§`,`ماذا يحدث بعد تنفيذ العبارة؟`,['The list becomes empty because head no longer points to a node','Only the first node is deleted','Only the last node is deleted','A compilation error occurs'],0,null,['تصبح القائمة فارغة لأن head لم يعد يشير إلى عقدة','تُحذف أول عقدة فقط','تُحذف آخر عقدة فقط','يحدث خطأ في الترجمة']),
+Q(`Consider:§public boolean isEmpty() {\n  return head == null;\n}§If head → 10 → null, what is returned?`,`إذا كانت القائمة head → 10 → null فماذا تُرجع الدالة؟`,['false','true','null','10'],0),
+Q(`If head = null; what does isEmpty() return?`,`إذا كان head = null فماذا تُرجع isEmpty()؟`,['true','false','null','0'],0),
+Q(`Complete the code for checking whether the linked list is empty.§public boolean isEmpty() {\n  return ____________;\n}§`,`أكمل كود التحقق من كون القائمة فارغة.`,['head == null','head != null','head.next == null','head.data == null'],0),
+Q(`Complete the code for moving to the next node.§helpPtr = ____________;§`,`أكمل كود الانتقال إلى العقدة التالية.`,['helpPtr.next','helpPtr.data','head','null'],0),
+Q(`Complete the code for deleting the first node.§if (head.data == value)\n  ____________;§`,`أكمل كود حذف أول عقدة.`,['head = head.next;','head = null;','head.next = null;','head = head;'],0),
+Q(`Complete the following deletion statement:§help_ptr.next = ____________;§`,`أكمل عبارة الحذف التالية.`,['help_ptr.next.next','help_ptr.next','help_ptr','null'],0),
+Q(`Complete the traversal condition:§while (____________) {\n  System.out.println(helpPtr.data);\n  helpPtr = helpPtr.next;\n}§`,`أكمل شرط المرور على العقد.`,['helpPtr != null','helpPtr == null','head == null','helpPtr.next == head'],0),
+Q(`Complete the code for adding a node to the front:§public void addToFront(int value) {\n  head = ____________;\n}§`,`أكمل كود إضافة عقدة إلى بداية القائمة.`,['new LLNode(value, head)','new LLNode(head, value)','head.next','null'],0),
+Q(`Complete the code to start traversal from the first node:§LLnode helpPtr = ____________;§`,`أكمل الكود لبدء المرور من أول عقدة.`,['head','null','head.next','new LLnode()'],0),
+Q(`Complete the following:§while (helpPtr != null) {\n  count++;\n  ____________;\n}§`,`أكمل الكود التالي.`,['helpPtr = helpPtr.next;','helpPtr = head;','helpPtr = null;','count = helpPtr;'],0),
+Q(`Complete the statement that increases the node's data by 10:§helpPtr.data = ____________;§`,`أكمل العبارة التي تزيد بيانات العقدة بمقدار 10.`,['helpPtr.data + 10','helpPtr.next + 10','10','helpPtr.data * 10'],0),
+Q(`Complete the code for removing the last node when helpPtr refers to the node before it:§helpPtr.next = ____________;§`,`أكمل كود حذف آخر عقدة عندما يشير helpPtr إلى العقدة التي قبلها.`,['null','head','helpPtr','helpPtr.next.next'],0),
+Q(`Which method checks whether a linked list is empty?`,`أي دالة تتحقق مما إذا كانت القائمة المترابطة فارغة؟`,['public boolean isEmpty() { return head == null; }','public boolean isEmpty() { return head != null; }','public boolean isEmpty() { return head.next == null; }','public int isEmpty() { return head; }'],0),
+Q(`Which statement moves head to the next node?`,`أي عبارة تنقل head إلى العقدة التالية؟`,['head = head.next;','head.next = head;','head = null.next;','head.next = null;'],0),
+Q(`Which statement moves a pointer to the next node?`,`أي عبارة تنقل المؤشر إلى العقدة التالية؟`,['helpPtr = helpPtr.next;','helpPtr.next = helpPtr;','helpPtr = head.next;','helpPtr = null;'],0),
+Q(`Which method adds a new node to the front of the linked list?`,`أي دالة تضيف عقدة جديدة إلى بداية القائمة المترابطة؟`,['public void addToFront(int value) { head = new LLNode(value, head); }','public void addToFront(int value) { head = new LLNode(value, null); }','public void addToFront(int value) { head.next = new LLNode(value, head); }','public void addToFront(int value) { head = head.next; }'],0),
+Q(`Which method prints all nodes?`,`أي دالة تطبع جميع العقد؟`,[S74,S74.replace('!= null','== null'),S74.replace(ADV.replace('  ','    '),''),S74.replace('= head;','= head.next;')],0),
+Q(`Which statement removes the first node when the value to be deleted is stored in value?`,`أي عبارة تحذف أول عقدة عندما تكون القيمة المراد حذفها في value؟`,['head = head.next;','head = null;','head.next = null;','head = head.next.next;'],0),
+Q(`Which statement removes the node after help_ptr?`,`أي عبارة تحذف العقدة التي تلي help_ptr؟`,['help_ptr.next = help_ptr.next.next;','help_ptr = help_ptr.next.next;','help_ptr.next = null;','help_ptr.next = help_ptr;'],0),
+Q(`Which code visits every node in a linked list?`,`أي كود يزور كل عقدة في القائمة المترابطة؟`,[S77,S77.replace('!= null','== null'),S77.replace(ADV,''),S77.replace('= head;','= null;')],0),
+Q(`Which code adds 10 to the data of every node?`,`أي كود يضيف 10 إلى بيانات كل عقدة؟`,[S78,S78.replace('data + 10','data * 10'),S78.replace(ADV,''),S78.replace('!= null','== null')],0),
+Q(`Which code counts the number of nodes in a linked list? (Complexity: O(n))`,`أي كود يعدّ عدد العقد في القائمة المترابطة؟ (التعقيد: O(n))`,[S79,S79.replace('  count++;\n',''),S79.replace('count = 0','count = 1'),S79.replace(ADV,'')],0),
+Q(`Find the Big O:§for (int i = 0; i < n; i++) {\n  x++;\n}§`,`أوجد Big O:`,BO,2),
+Q(`Find the Big O:§for (int i = 0; i < n; i += 2) {\n  x++;\n}§`,`أوجد Big O:`,BO,2,`الحلقة تُنفَّذ حوالي n/2 مرة: O(n/2) = O(n).`),
+Q(`Find the Big O:§int i = 1;\nwhile (i < n) {\n  i = i * 2;\n}§`,`أوجد Big O:`,BO,1),
+Q(`Find the Big O:§for (int i = 0; i < n; i++) {\n  for (int j = 0; j < n; j++) {\n    x++;\n  }\n}§`,`أوجد Big O:`,BO,3,`n × n = n²`),
+Q(`Find the Big O:§for (int i = 0; i < n; i++) {\n  x++;\n}\n\nint i = 1;\nwhile (i < n) {\n  i = i * 2;\n}§`,`أوجد Big O:`,BO,2,`O(n) + O(log n) والحد المهيمن هو O(n).`),
+Q(`Find the Big O:§for (int i = 0; i < n; i++) {\n  x++;\n}\n\nfor (int j = 0; j < n * n; j++) {\n  y++;\n}§`,`أوجد Big O:`,BO,3,`O(n) + O(n²) والحد المهيمن هو O(n²).`),
+Q(`Suppose counting primitive operations gives: 9n + 4. What is the Big O?`,`لنفترض أن عدّ العمليات الأولية أعطى 9n + 4. ما هو Big O؟`,BO,2,`الثوابت والحدود الصغرى تُهمل.`),
+Q(`Suppose the running-time expression is: 3n² + 2n + 5. What is the Big O?`,`لنفترض أن تعبير زمن التشغيل هو 3n² + 2n + 5. ما هو Big O؟`,BO,3),
+Q(`What is the Big O of accessing an array element directly by its index?`,`ما هو Big O للوصول إلى عنصر في المصفوفة مباشرة بالفهرس؟`,BO,0),
+Q(`What is the Big O of printing all elements of an array?`,`ما هو Big O لطباعة جميع عناصر المصفوفة؟`,BO,2),
+Q(`What is the Big O of comparing two strings when the comparison may examine all characters?`,`ما هو Big O لمقارنة نصين عندما قد تفحص المقارنة كل الحروف؟`,BO,2),
+Q(`What is the Big O of traversing a two-dimensional structure where both dimensions depend on n?`,`ما هو Big O للمرور على بنية ثنائية الأبعاد يعتمد بعداها على n؟`,BO,3),
+Q(`Consider:§double x, y;\nx = 2.5;\ny = 3.0;\n\nfor (int i = 0; i < n; i++) {\n  a[i] = x * y;\n  x = 2.5 * x;\n  y = y + a[i];\n}§According to the operation-counting approach used in the review, what is the resulting expression? (Then Big O = O(n))`,`حسب أسلوب عدّ العمليات المستخدم في المراجعة، ما التعبير الناتج؟ (ثم Big O = O(n))`,['9n + 4','3n + 2','n²','9n²'],0),
+Q(`Why is 9n + 4 simplified to O(n)?`,`لماذا يُبسَّط 9n + 4 إلى O(n)؟`,['Big O focuses on growth rate as n becomes large; constants are ignored','Because constants are always larger than n','Because 9n + 4 is exactly equal to n','Because the loop runs only 4 times'],0,`Big O يركز على معدل النمو عندما تكبر n: 9n → n و4 تُهمل، إذن O(n).`,['Big O يركز على معدل النمو عندما تكبر n والثوابت تُهمل','لأن الثوابت دائمًا أكبر من n','لأن 9n + 4 تساوي n تمامًا','لأن الحلقة تُنفَّذ 4 مرات فقط']),
+Q(`If a piece of code contains O(n) followed by O(n²), what should you do when finding the final Big O?`,`إذا احتوى الكود على O(n) يتبعه O(n²)، فماذا تفعل لإيجاد Big O النهائي؟`,['Add them, then keep the dominant term: O(n²)','Multiply them: O(n³)','Keep only O(n)','Subtract them: O(n² − n)'],0,`نجمع التعقيدين ثم نُبقي الحد المهيمن O(n²).`,['نجمعهما ثم نُبقي الحد المهيمن: O(n²)','نضربهما: O(n³)','نُبقي O(n) فقط','نطرحهما: O(n² − n)']),
+Q(`What are the important deletion cases discussed in the review?`,`ما حالات الحذف المهمة التي ناقشتها المراجعة؟`,['First node, middle node, last node, and the only node in the list','Only the first node','Only the first and last nodes','Only middle nodes'],0,null,['أول عقدة، عقدة في المنتصف، آخر عقدة، والعقدة الوحيدة في القائمة','أول عقدة فقط','أول وآخر عقدة فقط','عقد المنتصف فقط']),
+Q(`How do you remove the first node?`,`كيف تحذف أول عقدة؟`,['head = head.next;','head = null;','head.next = null;','head = head.next.next;'],0),
+Q(`How do you make a one-node list empty?§head → 5 → null§`,`كيف تجعل قائمة من عقدة واحدة فارغة؟`,['head = null;','head = head.next.next;','head.next = head;','head.data = null;'],0),
+Q(`Suppose:§${HP}§and help_ptr points to 2. Which statement removes 4?`,`أي عبارة تحذف العقدة 4 إذا كان help_ptr يشير إلى 2؟`,['help_ptr.next = help_ptr.next.next;','help_ptr = help_ptr.next.next;','help_ptr.next = null;','head = head.next;'],0),
+Q(`Why is the previous node important when deleting a node from the middle of a singly linked list?`,`لماذا تكون العقدة السابقة مهمة عند حذف عقدة من منتصف القائمة المترابطة المفردة؟`,['We must change the previous node\'s next reference so it skips the deleted node','To read the deleted node\'s data','To move head to the last node','To count the nodes'],0,`مثال: 2 → 4 → 6 تصبح 2 → 6 بتغيير رابط العقدة 2.`,['لأننا نغيّر مرجع next للعقدة السابقة ليتخطى العقدة المحذوفة','لقراءة بيانات العقدة المحذوفة','لنقل head إلى آخر عقدة','لعدّ العقد']),
+Q(`Complete the following method:§public void delete(int value) {\n  if (!isEmpty()) {\n    if (head.data == value)\n      ______(1)______;\n    else {\n      LLNode help_ptr = head;\n      while (help_ptr.next != null) {\n        if (help_ptr.next.data == value) {\n          ______(2)______;\n          break;\n        }\n        help_ptr = help_ptr.next;\n      }\n    }\n  }\n}§`,`أكمل الدالة التالية (الفراغان 1 و2).`,['(1) head = head.next;   (2) help_ptr.next = help_ptr.next.next;','(1) head = null;   (2) help_ptr.next = null;','(1) head = head.next;   (2) help_ptr = help_ptr.next.next;','(1) head.next = null;   (2) help_ptr.next = help_ptr.next;'],0),
+Q(`Complete:§public void printAllNodes() {\n  LLnode helpPtr = head;\n  while (____________) {\n    System.out.print(helpPtr.data + " ");\n    helpPtr = helpPtr.next;\n  }\n}§`,`أكمل الكود.`,['helpPtr == null','helpPtr != null','head == null','head != null'],1),
+Q(`Complete:§public boolean isEmpty() {\n  return ____________;\n}§`,`أكمل الكود.`,['head != null','head.next','head == null','head.data == null'],2),
+Q(`Complete:§public void addToFront(int value) {\n  head = ____________;\n}§`,`أكمل الكود.`,['head.next','new LLNode(value, head)','new LLNode(head, value)','null'],1),
+Q(`Complete the statement to remove the node immediately after help_ptr:§help_ptr.next = ____________;§`,`أكمل العبارة لحذف العقدة التي تلي help_ptr مباشرة.`,['null','head','help_ptr','help_ptr.next.next'],3),
+Q(`What is the output?§LLnode helpPtr = head;\nwhile (helpPtr != null) {\n  System.out.print(helpPtr.data + " ");\n  helpPtr = helpPtr.next;\n}§For:§head → 7 → 9 → 12 → null§`,`ما هو الناتج؟`,['7 9 12','7 9','9 12','12 9 7'],0),
+Q(`What is the Big O?§for (int i = 0; i < n / 2; i++) {\n  System.out.println(i);\n}§`,`ما هو Big O؟`,BO,2,`n/2 تُختصر إلى n.`),
+Q(`What is the Big O?§int i = 1;\nwhile (i < n) {\n  i *= 2;\n}§`,`ما هو Big O؟`,BO,1),
+Q(`What is the result?§head = head.next;§for:§head → A → B → C → null§`,`ما النتيجة؟`,['head → B → C → null','head → A → B → C → null','head → A → C → null','head → C → null'],0),
+Q(`What is the result?§LLnode helpPtr = head;\nhelpPtr.next = helpPtr.next.next;§for:§head → A → B → C → null§`,`ما النتيجة؟`,['head → A → C → null','head → B → C → null','head → A → B → null','head → C → null'],0)
+];
+
+
+const successPhrases = ["أحسنتِ أبرار كمّلي يا بطلةة! 🏆","ممتازة يا أبرار! أنتِ نجمة هياكل البيانات 🌟","برافو أبرار! استمري على هذا التألق 🚀","عاشت الأيادي! إجابة ملكية 👑","أسطورية يا أبرار! الكويز لكِ بإذن الله 💎","ما شاء الله عليكِ! عقلكِ برمجي ذهبي ✨"];
+const failPhrases = ["حاولي مرة أخرى يا أبرار، أنتِ تقدرين! 💪","لا بأس يا بطلةة، ركّزي وحاولي مجددًا 🔄","قريبة جدًا! المحاولة القادمة لكِ يا أبرار 🎯","الفشل أول خطوة للنجاح، حاولي مرة أخرى ❤️‍🔥"];
+const quotes = ["«القائمة المترابطة: كل عقدة تحمل بيانات ومرجعًا للعقدة التالية»","«head تشير دائمًا إلى أول عقدة في القائمة»","«حذف عقدة = تغيير الروابط وليس إزاحة العناصر»","«Big O تهتم بمعدل النمو: تجاهلي الثوابت والحدود الأصغر»","«الحلقتان المتداخلتان n × n تعنيان O(n²)»","«المضاعفة i = i * 2 تعني O(log n)»","«التدريب المستمر + الفهم العميق = إتقان هياكل البيانات»"];
+let qi=0;
+let state = QUESTIONS.map(()=>({chosen:null,first:null,attempts:0,done:false,skipped:false,firstCorrect:null}));
+let translated = new Set();
+let translateAll=false;
+let bookmarked=new Set();
+let mode='train';
+let soundOn=true;
+let xp=0, streak=0, bestStreak=0, correctFirst=0;
+let seconds=0, timerInt=null, started=false;
+let filter='all', showOnlyWrong=false;
+let audioCtx=null;
+let charts=[];
+
+/* AUDIO */
+function ctx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); return audioCtx; }
+function tone(f,t,d,type='sine',v=.22,when=0){ if(!soundOn) return; try{ const c=ctx(),o=c.createOscillator(),g=c.createGain(); o.type=type;o.frequency.value=f; const s=c.currentTime+when; g.gain.setValueAtTime(0.0001,s); g.gain.exponentialRampToValueAtTime(v,s+.02); g.gain.exponentialRampToValueAtTime(0.0001,s+d); o.connect(g);g.connect(c.destination);o.start(s);o.stop(s+d+.05);}catch(e){} }
+function playClick(){ tone(600,0,.12,'sine',.12); }
+function playSuccess(){ if(!soundOn) return; [523,659,784,1046,1318].forEach((f,i)=>tone(f,0,.35,'triangle',.22,i*.09)); tone(2093,0,.5,'sine',.12,.5); setTimeout(()=>{ [1046,1318,1568].forEach((f,i)=>tone(f,0,.3,'sine',.15,i*.07)); },450); }
+function playFail(){ if(!soundOn) return; tone(220,0,.3,'sawtooth',.12); tone(174,0,.4,'sawtooth',.12,.15); }
+function playFinish(){ if(!soundOn) return; [523,523,523,659,784,1046,784,1046,1318,1568,2093].forEach((f,i)=>tone(f,0,.35,'triangle',.2,i*.13)); }
+function toggleSound(){ soundOn=!soundOn; document.getElementById('soundBtn').textContent=soundOn?'🔊':'🔇'; if(soundOn) playClick(); toast(soundOn?'🔊 تم تفعيل الأصوات التحفيزية':'🔇 تم كتم الصوت'); }
+
+/* HELPERS */
+function scrollToQuiz(){ document.getElementById('quizSection').scrollIntoView({behavior:'smooth'}); if(!started) startTimer(); playClick(); }
+function setMode(m){ mode=m; playClick(); const t=document.getElementById('modeTrain'),e=document.getElementById('modeExam'); if(m==='train'){ t.classList.add('border-[#D4AF37]'); t.classList.remove('border-transparent'); e.classList.remove('border-[#D4AF37]'); e.classList.add('border-transparent'); t.querySelector('div:last-child').textContent='● مُفعّل الآن'; t.querySelector('div:last-child').className='text-[11px] mt-2 font-black text-green-400'; document.getElementById('examLabel').textContent='○ اضغطي للتفعيل'; document.getElementById('examLabel').className='text-[11px] mt-2 font-black text-white/40'; toast('🎓 وضع التدريب: يمكنك المحاولة مجددًا للتعلم'); } else { e.classList.add('border-[#D4AF37]'); e.classList.remove('border-transparent'); t.classList.remove('border-[#D4AF37]'); t.classList.add('border-transparent'); document.getElementById('examLabel').textContent='● مُفعّل الآن'; document.getElementById('examLabel').className='text-[11px] mt-2 font-black text-green-400'; toast('⏱️ وضع الكويز الحقيقي: محاولة واحدة فقط يا بطلة!'); } }
+function startTimer(){ if(started) return; started=true; timerInt=setInterval(()=>{ seconds++; const m=String(Math.floor(seconds/60)).padStart(2,'0'),s=String(seconds%60).padStart(2,'0'); document.getElementById('timerHero').textContent=`${m}:${s}`; },1000); }
+function fmt(s){ return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function toast(msg){ const w=document.getElementById('toastWrap'); const d=document.createElement('div'); d.className='toast pointer-events-auto glass gold-border rounded-2xl px-5 py-3 font-bold text-sm text-center shadow-2xl'; d.innerHTML=msg; w.appendChild(d); setTimeout(()=>{ d.style.opacity='0'; d.style.transform='translateY(10px)'; setTimeout(()=>d.remove(),400); },2600); }
+function goldConfettiBig(){ const end=Date.now()+1200; (function f(){ confetti({particleCount:6,angle:60,spread:60,origin:{x:0},colors:['#D4AF37','#F5D67B','#FFF6C8','#fff']}); confetti({particleCount:6,angle:120,spread:60,origin:{x:1},colors:['#D4AF37','#F5D67B','#FFF6C8','#fff']}); if(Date.now()<end) requestAnimationFrame(f); })(); confetti({particleCount:120,spread:100,origin:{y:.6},colors:['#D4AF37','#F5D67B','#ffffff','#22c55e']}); }
+function smallConfetti(){ confetti({particleCount:45,spread:70,origin:{y:.7},colors:['#D4AF37','#F5D67B','#fff','#22c55e']}); }
+
+/* RENDER */
+function renderQuestion(){
+const q=QUESTIONS[qi], st=state[qi];
+document.getElementById('qCounter').textContent=`السؤال ${qi+1} / 109`;
+document.getElementById('heroQpos').textContent=qi+1;
+document.getElementById('qPageBadge').textContent=`📄 ${q.page}`;
+document.getElementById('qTypeBadge').textContent=TL[q.tag];
+document.getElementById('qEn').innerHTML=`<span class="text-[#F5D67B] font-black">Q${q.id}.</span> ${q.en}`;
+const showTr = translateAll || translated.has(qi);
+document.getElementById('qArBox').classList.toggle('hidden',!showTr);
+document.getElementById('qAr').textContent=q.ar;
+document.getElementById('trBtn').textContent=showTr?'🙈 إخفاء الترجمة':'🌐 ترجم';
+document.getElementById('trBtn').className=showTr?'rounded-xl px-4 py-2.5 font-black text-sm bg-white/15 border border-[#D4AF37]':'rounded-xl px-4 py-2.5 font-black text-sm btn-gold';
+document.getElementById('bmBtn').textContent=bookmarked.has(qi)?'⭐':'🤍';
+const ab=document.getElementById('attemptBadge');
+if(st.attempts>0 && !st.done){ ab.classList.remove('hidden'); ab.textContent=`🔄 المحاولة ${st.attempts+1}`; } else ab.classList.add('hidden');
+const grid=document.getElementById('optsGrid'); grid.innerHTML='';
+const letters=q.type==='tf'?['✓','✕']:['A','B','C','D'];
+q.opts.en.forEach((oe,i)=>{
+const b=document.createElement('button'); b.className='opt'; b.id=`opt${i}`;
+const isCorrectOpt = st.done && i===q.correct;
+const isWrongChosen = st.done && st.first!==null && st.chosen===i && i!==q.correct && mode==='exam';
+const isDisabledWrong = mode==='train' && st.wrongTried && st.wrongTried.includes(i);
+if(isCorrectOpt) b.classList.add('correct');
+if(isWrongChosen) b.classList.add('wrong');
+if(isDisabledWrong){ b.classList.add('dim'); b.disabled=true; }
+if(st.done && mode==='exam') b.disabled=true;
+if(st.done && mode==='train' && st.finalDone) b.disabled=true;
+b.innerHTML=`<span class="opt-letter">${letters[i]}</span><span class="flex-1"><span dir="ltr" class="block text-left font-pop font-semibold leading-7">${oe}</span><span class="block mt-1 text-[13px] font-bold ${showTr?'':'hidden'} text-[#F5D67B] opt-ar-trans">${q.opts.ar[i]}</span></span><span class="text-xl result-ico">${isCorrectOpt?'✅':(isWrongChosen?'❌':'')}</span>`;
+b.onclick=()=>answer(i);
+grid.appendChild(b);
+});
+// feedback
+const fb=document.getElementById('feedbackBox'), ex=document.getElementById('explainBox');
+fb.classList.add('hidden'); ex.classList.add('hidden');
+if(st.done){
+if(st.firstCorrect){ fb.classList.remove('hidden'); fb.className='mt-5 rounded-2xl p-5 text-center font-black text-lg pop feedback-ok'; fb.innerHTML=`🎉 ${st.successMsg||'أحسنتِ أبرار كمّلي يا بطلةة! 🏆'}<div class="text-xs font-bold text-green-200 mt-1">إجابة صحيحة من ${st.attempts===0?'أول محاولة':'المحاولة '+(st.attempts+1)} • +${st.attempts===0?10:5} XP</div>`; }
+else if(mode==='exam'){ fb.classList.remove('hidden'); fb.className='mt-5 rounded-2xl p-5 text-center font-black text-lg pop feedback-bad'; fb.innerHTML=`💪 حاولي مرة أخرى يا أبرار في السؤال القادم!<div class="text-sm mt-1">الإجابة الصحيحة: <b class="text-green-300">${q.opts.en[q.correct]}</b> • <b class="text-[#F5D67B]">${q.opts.ar[q.correct]}</b></div>`; }
+showExplain();
+if(st.finalDone && !st.firstCorrect){ fb.classList.remove('hidden'); fb.className='mt-5 rounded-2xl p-5 text-center font-black text-lg pop feedback-ok'; fb.innerHTML=`👏 أحسنتِ أبرار! وصلت للصح بعد التعلم 💡<div class="text-xs mt-1 text-white/70">أول إجابة كانت خاطئة (محسوبة للمراجعة) لكن إصرارك بطولي — أكملي!</div>`; }
+} else if(st.attempts>0){
+fb.classList.remove('hidden'); fb.className='mt-5 rounded-2xl p-5 text-center font-black text-lg pop feedback-bad'; fb.innerHTML=`${failPhrases[st.attempts%failPhrases.length]}<div class="text-sm text-white/70 mt-1">اختاري إجابة أخرى يا بطلة — أنتِ تقدرين! 🔥</div>`;
+}
+updateProgress(); renderPalette();
+document.getElementById('qCard').classList.remove('shake');
+}
+function showExplain(){ const q=QUESTIONS[qi]; const ex=document.getElementById('explainBox'); ex.classList.remove('hidden'); ex.innerHTML=`<b class="text-[#F5D67B]">💡 الشرح الذهبي:</b> ${q.ex}<div class="mt-1 text-xs text-white/60">النموذجية: <b dir="ltr" class="text-green-300">${q.opts.en[q.correct]}</b> — <b class="text-[#F5D67B]">${q.opts.ar[q.correct]}</b></div>`; }
+
+function answer(i){
+startTimer(); playClick();
+const q=QUESTIONS[qi], st=state[qi];
+if(st.done && (mode==='exam' || st.finalDone)) return;
+if(st.wrongTried && st.wrongTried.includes(i)) return;
+if(st.first===null){ st.first=i; st.attempts=0; }
+else { st.attempts++; }
+if(i===q.correct){
+// correct
+if(st.first===i){ st.firstCorrect=true; correctFirst++; streak++; bestStreak=Math.max(bestStreak,streak); xp+=10; st.successMsg=successPhrases[Math.floor(Math.random()*successPhrases.length)]; }
+else { st.firstCorrect=false; streak=0; xp+=5; if(!st.successMsg) st.successMsg=successPhrases[Math.floor(Math.random()*successPhrases.length)]; }
+st.chosen=i; st.done=true; st.finalDone=true;
+playSuccess(); smallConfetti();
+if(streak>0 && streak%5===0){ goldConfettiBig(); showCheer(`🔥 سلسلة نارية ${streak} إجابات!`,`واصلي يا أبرار! أنتِ تقتربين من العلامة الكاملة بسرعة الصاروخ 🚀`); }
+else if(st.first===i && Math.random()<.28){ goldConfettiBig(); }
+toast(`✅ <span class="gold-text">أحسنتِ أبرار كمّلي يا بطلةة!</span> 🏆`);
+document.getElementById('qCard').classList.add('pop');
+} else {
+// wrong
+playFail();
+document.getElementById('qCard').classList.remove('shake'); void document.getElementById('qCard').offsetWidth; document.getElementById('qCard').classList.add('shake');
+if(mode==='exam'){ st.chosen=i; st.firstCorrect=false; st.done=true; st.finalDone=true; streak=0; toast(`❌ <b>حاولي مرة أخرى</b> يا أبرار في القادم! 💪`); }
+else {
+if(!st.wrongTried) st.wrongTried=[];
+st.wrongTried.push(i);
+if(st.first!==i || true){ if(st.wrongTried.length>= (q.type==='tf'?1:2) && q.type!=='tf' && st.wrongTried.length>=3){ st.chosen=q.correct; st.done=true; st.finalDone=true; st.firstCorrect=false; streak=0; } }
+toast(`❌ <b>حاولي مرة أخرى</b> يا أبرار! 🔄`);
+if(q.type==='tf'){ /* second try will be correct */ }
+}
+}
+updateHUD(); renderQuestion();
+if(state[qi].done){ setTimeout(()=>{ if(qi<108 && document.getElementById('reportSection').classList.contains('hidden')){ /* stay, let user click next */ } },600); }
+}
+function nextQ(){ playClick(); if(qi<108){ qi++; renderQuestion(); document.getElementById('quizSection').scrollIntoView({behavior:'smooth',block:'start'}); } else toast('🏁 هذا آخر سؤال — اضغطي إنهاء لعرض تقريرك الملكي'); }
+function prevQ(){ playClick(); if(qi>0){ qi--; renderQuestion(); } }
+function skipQ(){ playClick(); state[qi].skipped=true; toast('⏭️ تم تخطي السؤال — يمكنك العودة له من الخريطة'); if(qi<108){ qi++; renderQuestion(); } updateProgress(); renderPalette(); }
+function toggleTranslateCurrent(){ playClick(); if(translated.has(qi)) translated.delete(qi); else translated.add(qi); renderQuestion(); }
+function translateAllToggle(){ playClick(); translateAll=!translateAll; toast(translateAll?'🌐 تم تفعيل الترجمة العربية لجميع الأسئلة بجانب الإنجليزية':'🌐 تم إخفاء الترجمات'); renderQuestion(); }
+function toggleBookmark(){ playClick(); if(bookmarked.has(qi)) bookmarked.delete(qi); else { bookmarked.add(qi); toast('⭐ تمت الإضافة للمفضلة'); } renderQuestion(); renderPalette(); }
+function reviewBookmarks(){ playClick(); if(bookmarked.size===0){ toast('⭐ لا توجد أسئلة مفضلة بعد — اضغطي 🤍 لحفظ سؤال'); return; } filter='bm'; renderPalette(); document.getElementById('paletteCard').scrollIntoView({behavior:'smooth'}); }
+function setFilter(f){ playClick(); filter=f; document.querySelectorAll('.filter-btn').forEach(b=>{ if(b.dataset.f===f){ b.className='filter-btn px-3 py-1.5 rounded-lg bg-[#D4AF37] text-black'; } else { b.className='filter-btn px-3 py-1.5 rounded-lg bg-white/10'; } }); renderPalette(); }
+function updateHUD(){ document.getElementById('hdrScore').textContent=xp; document.getElementById('statCorrect').textContent=correctFirst; const wrongFirst=state.filter(s=>s.firstCorrect===false).length; document.getElementById('statWrong').textContent=wrongFirst; document.getElementById('statStreak').textContent=streak+' 🔥'; document.getElementById('xpNum').textContent=xp; const lvl=Math.floor(xp/100)+1; document.getElementById('levelNum').textContent=lvl; document.getElementById('xpBar').style.width=((xp%100))+'%'; }
+function updateProgress(){ const answered=state.filter(s=>s.done).length; const pct=Math.round(answered/109*100); document.getElementById('quizProgress').style.width=Math.max(2,pct)+'%'; document.getElementById('topProgress').style.width=pct+'%'; }
+function renderPalette(){ const p=document.getElementById('palette'); p.innerHTML=''; QUESTIONS.forEach((q,idx)=>{ const st=state[idx]; let show=true; if(filter==='ok' && !(st.done&&st.firstCorrect)) show=false; if(filter==='bad' && !(st.done&&st.firstCorrect===false)) show=false; if(filter==='un' && st.done) show=false; if(filter==='bm' && !bookmarked.has(idx)) show=false; if(!show) return; const b=document.createElement('button'); b.textContent=idx+1; b.className='pal-btn'+(idx===qi?' current':'')+((st.done&&st.firstCorrect)?' ok':(st.done&&st.firstCorrect===false)?' bad':(st.skipped&&!st.done)?' skip':''); if(bookmarked.has(idx)) b.textContent+='•'; b.title=`Q${idx+1} - ${q.page}`; b.onclick=()=>{ playClick(); qi=idx; renderQuestion(); }; p.appendChild(b); }); }
+
+/* CHEER */
+function showCheer(t,s){ document.getElementById('bigCheerTitle').textContent=t; document.getElementById('bigCheerSub').textContent=s; const o=document.getElementById('bigCheer'); o.classList.remove('hidden'); o.classList.add('flex'); }
+function closeCheer(){ const o=document.getElementById('bigCheer'); o.classList.add('hidden'); o.classList.remove('flex'); playClick(); }
+
+/* FINISH & REPORT */
+function confirmFinish(){ playClick(); const un=state.filter(s=>!s.done).length; if(un>0){ if(!confirm(`يا أبرار، لديك ${un} سؤالًا غير مجاب. هل تريد إنهاء الاختبار وعرض النتيجة الآن؟`)) return; } finish(); }
+function finish(){ clearInterval(timerInt); playFinish(); goldConfettiBig(); setTimeout(goldConfettiBig,800);
+const correct=state.filter(s=>s.firstCorrect===true).length;
+const wrong=state.filter(s=>s.firstCorrect===false).length;
+const skipped=state.filter(s=>!s.done).length;
+const pct=Math.round(correct/109*100);
+document.getElementById('reportSection').classList.remove('hidden');
+document.getElementById('rCorrect').textContent=correct;
+document.getElementById('rWrong').textContent=wrong;
+document.getElementById('rTime').textContent=fmt(seconds);
+document.getElementById('rStreak').textContent=bestStreak+' 🔥';
+document.getElementById('finalPct').textContent=pct+'%';
+document.getElementById('reportSubtitle').textContent=`أكملت 109 سؤالًا في ${fmt(seconds)} • صح من أول مرة: ${correct} • تحتاج مراجعة: ${wrong} • متخطّى: ${skipped}`;
+let grade,msg;
+if(pct>=90){ grade='🏆 ممتاز مع مرتبة الشرف'; msg=`أسطورية يا أبرار! ${correct}/109 من أول مرة — أحسنتِ كمّلي يا بطلةة! أنتِ جاهزة للكويز بنسبة 100% 👑🔥`; }
+else if(pct>=80){ grade='🌟 ممتاز'; msg=`رائعة يا أبرار! ${correct}/109 — أحسنتِ كمّلي يا بطلةة! مراجعة سريعة للأخطاء وستكون علامتك كاملة 💎`; }
+else if(pct>=70){ grade='👏 جيد جدًا'; msg=`أداء بطولي يا أبرار! ${correct}/109 — استمري! راجعي الأسئلة الخاطئة بالأسفل وستتفوقين 🚀`; }
+else if(pct>=60){ grade='💪 جيد'; msg=`بداية قوية يا أبرار! ${correct}/109 — حاولي مرة أخرى وستتحسنين كثيرًا! راجعي الشرح لكل سؤال 📚`; }
+else { grade='📚 يحتاج تدريب'; msg=`لا تستسلمي يا بطلة! ${correct}/109 — كل عظيم بدأ من هنا. راجعي الأخطاء ثم أعيدي الاختبار وستبهرين الجميع ❤️‍🔥`; }
+document.getElementById('gradeBadge').textContent=grade;
+const fm=document.getElementById('finalMessage'); fm.textContent=msg;
+const circ=document.getElementById('scoreCircle'); const off=326.7-(326.7*pct/100); setTimeout(()=>circ.style.strokeDashoffset=off,300);
+let best=parseInt(lsGet('abr_best')||'0'); if(pct>best){ lsSet('abr_best',pct); best=pct; toast('🎉 رقم قياسي جديد! best: '+pct+'%'); }
+document.getElementById('bestScoreHero').textContent=best+'%';
+showCheer(pct>=60?'أحسنتِ أبرار كمّلي يا بطلةة! 🏆':'حاولي مرة أخرى يا بطلة! 💪', msg);
+renderReportList(); drawCharts(correct,wrong,skipped);
+document.getElementById('reportSection').scrollIntoView({behavior:'smooth'});
+}
+function toggleWrongBtn(btn){ document.querySelectorAll('#reportSection .no-print button').forEach(b=>b.classList.replace('btn-gold','btn-ghost')); }
+function renderReportList(){
+const wrap=document.getElementById('reportList'); wrap.innerHTML='';
+QUESTIONS.forEach((q,idx)=>{
+const st=state[idx];
+const isOk=st.firstCorrect===true, isBad=st.firstCorrect===false, isSkip=!st.done;
+if(showOnlyWrong && !isBad) return;
+const userTxt = st.first===null?'— لم يُجب —':`${q.opts.en[st.first]} — ${q.opts.ar[st.first]}`;
+const modelTxt=`${q.opts.en[q.correct]} — ${q.opts.ar[q.correct]}`;
+const card=document.createElement('div');
+card.className=`glass rounded-2xl p-5 border-r-8 ${isOk?'!border-green-500':isBad?'!border-red-500':'!border-yellow-500'}`;
+card.innerHTML=`
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-black btn-gold rounded-lg px-3 py-1 text-sm">Q${q.id}</span>
+<span class="text-xs font-bold bg-white/10 rounded-lg px-3 py-1">📄 ${q.page}</span>
+<span class="text-xs font-bold rounded-lg px-3 py-1 ${q.type==='tf'?'bg-purple-500/20 text-purple-200':'bg-blue-500/20 text-blue-200'}">${TL[q.tag]}</span>
+${bookmarked.has(idx)?'<span class="text-xs">⭐</span>':''}
+</div>
+<span class="font-black text-sm px-4 py-1.5 rounded-full ${isOk?'bg-green-500/20 text-green-300 border border-green-500':isBad?'bg-red-500/20 text-red-300 border border-red-500':'bg-yellow-500/20 text-yellow-200 border border-yellow-500'}">${isOk?'✅ صح':'❌ خطأ / مراجعة'}</span>
+</div>
+<div dir="ltr" class="text-left font-pop font-semibold mt-3 leading-7 text-[15px]">${q.en}</div>
+<div class="ar-box p-3 mt-2 text-sm font-bold leading-7">🇸🇦 ${q.ar}</div>
+<div class="grid md:grid-cols-2 gap-3 mt-3 text-sm">
+<div class="rounded-xl p-3 border ${isOk?'bg-green-500/10 border-green-500/109':'bg-red-500/10 border-red-500/109'}"><div class="text-xs font-black opacity-70">إجابة أبرار (أول محاولة):</div><div class="font-bold mt-1" dir="ltr">${st.first===null?'—':q.opts.en[st.first]}</div><div class="font-bold text-[#F5D67B]">${st.first===null?'لم يُجب':q.opts.ar[st.first]}</div></div>
+<div class="rounded-xl p-3 bg-green-500/10 border border-green-500/109"><div class="text-xs font-black text-green-300">✅ الإجابة النموذجية:</div><div class="font-bold mt-1" dir="ltr">${q.opts.en[q.correct]}</div><div class="font-bold text-[#F5D67B]">${q.opts.ar[q.correct]}</div></div>
+</div>
+<div class="mt-2 text-xs leading-6 bg-black/30 rounded-xl p-3 border border-white/10">💡 <b>الشرح:</b> ${q.ex} ${st.attempts>0?`• عدد المحاولات: ${st.attempts+1}`:''}</div>
+<div class="flex gap-2 mt-3 no-print">
+<button onclick="goToQ(${idx})" class="btn-ghost rounded-lg px-4 py-2 text-xs font-bold">🔁 العودة للسؤال</button>
+<button onclick="toggleBmReport(${idx},this)" class="btn-ghost rounded-lg px-4 py-2 text-xs font-bold">${bookmarked.has(idx)?'⭐ مفضلة':'🤍 حفظ'}</button>
+</div>`;
+wrap.appendChild(card);
+});
+if(wrap.children.length===0){ wrap.innerHTML=`<div class="glass rounded-2xl p-10 text-center font-black text-green-300 text-xl">🎉 لا توجد أخطاء يا بطلة! كل إجاباتك صحيحة — أحسنتِ أبرار! 👑</div>`; }
+}
+function goToQ(i){ qi=i; renderQuestion(); document.getElementById('quizSection').scrollIntoView({behavior:'smooth'}); playClick(); }
+function toggleBmReport(i,btn){ if(bookmarked.has(i)) bookmarked.delete(i); else bookmarked.add(i); renderReportList(); renderPalette(); playClick(); }
+function drawCharts(c,w,s){ charts.forEach(ch=>ch.destroy()); charts=[]; const d=document.getElementById('chartDoughnut'); charts.push(new Chart(d,{type:'doughnut',data:{labels:['صحيحة','تحتاج مراجعة','متخطّى'],datasets:[{data:[c,w,s],backgroundColor:['#22c55e','#ef4444','#D4AF37'],borderWidth:0}]},options:{plugins:{legend:{labels:{color:'#fff',font:{family:'Cairo',weight:'bold'}}}}}})); const G=[[0,21,'صح/خطأ Q1-21'],[21,47,'اختياري Q22-47'],[47,79,'كود Q48-79'],[79,109,'Big O وأخرى Q80-109']]; const gc=G.map(g=>state.slice(g[0],g[1]).filter(x=>x.firstCorrect).length); charts.push(new Chart(document.getElementById('chartBars'),{type:'bar',data:{labels:G.map(g=>g[2]),datasets:[{label:'صحيحة',data:gc,backgroundColor:'#22c55e',borderRadius:10},{label:'خاطئة/متخطّى',data:G.map((g,i)=>g[1]-g[0]-gc[i]),backgroundColor:'#ef4444',borderRadius:10}]},options:{scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'},beginAtZero:true}},plugins:{legend:{labels:{color:'#fff'}}}}})); }
+function restartQuiz(){ if(!confirm('هل تريد إعادة الاختبار من جديد يا أبرار؟')) return; state=QUESTIONS.map(()=>({chosen:null,first:null,attempts:0,done:false,skipped:false,firstCorrect:null})); qi=0; xp=0; streak=0; bestStreak=0; correctFirst=0; seconds=0; started=false; clearInterval(timerInt); document.getElementById('timerHero').textContent='00:00'; document.getElementById('reportSection').classList.add('hidden'); showOnlyWrong=false; updateHUD(); renderQuestion(); scrollToQuiz(); toast('🔄 بداية جديدة موفقة يا بطلة!'); }
+function shareResult(){ const c=state.filter(s=>s.firstCorrect).length; const t=`🏆 نتيجة البطلة أبرار الحربي في مراجعة Data Structures Linked Lists &amp; Big O: ${c}/109 (${Math.round(c/109*100)}%) — أحسنتِ أبرار كمّلي يا بطلةة! 👑`; if(navigator.share){ navigator.share({title:'نتيجتي',text:t}).catch(()=>{}); } else { navigator.clipboard.writeText(t).then(()=>toast('📋 تم نسخ النتيجة للمشاركة!')); } }
+
+/* BG STARS */
+(function(){ const cv=document.getElementById('stars'),cx=cv.getContext('2d'); let W,H,pts=[]; function rs(){ W=cv.width=innerWidth; H=cv.height=innerHeight; pts=Array.from({length:110},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.8+.4,s:Math.random()*.4+.1,g:Math.random()>.85})); } rs(); addEventListener('resize',rs); (function an(){ cx.clearRect(0,0,W,H); pts.forEach(p=>{ p.y-=p.s; if(p.y<0)p.y=H; cx.beginPath(); cx.arc(p.x,p.y,p.r,0,7); cx.fillStyle=p.g?'rgba(245,214,123,.9)':'rgba(255,255,255,.5)'; cx.fill(); }); requestAnimationFrame(an); })(); })();
+
+/* QUOTES */
+let qi2=0; setInterval(()=>{ qi2=(qi2+1)%quotes.length; const el=document.getElementById('quoteText'); el.style.opacity=0; setTimeout(()=>{ el.textContent=quotes[qi2]; el.style.opacity=1; },300); },8000);
+
+/* KEYBOARD */
+document.addEventListener('keydown',e=>{ if(!document.getElementById('reportSection').classList.contains('hidden') && e.key==='Escape') closeCheer(); if(e.key>='1'&&e.key<='4'){ const q=QUESTIONS[qi]; const idx=parseInt(e.key)-1; if(idx<q.opts.en.length) answer(idx); } if(e.key==='t'||e.key==='T'||e.key==='f'||e.key==='F') toggleTranslateCurrent(); if(e.key==='ArrowLeft') nextQ(); if(e.key==='ArrowRight') prevQ(); });
+
+/* INIT */
+window.onload=function(){
+let p=0; const li=setInterval(()=>{ p+=12; document.getElementById('loadBar').style.width=Math.min(100,p)+'%'; if(p>=100){ clearInterval(li); setTimeout(()=>{ document.getElementById('preloader').style.opacity='0'; setTimeout(()=>document.getElementById('preloader').remove(),700); },300); } },120);
+document.getElementById('bestScoreHero').textContent=(lsGet('abr_best')||'0')+'%';
+updateHUD(); renderQuestion(); renderPalette();
+setTimeout(()=>toast('👑 أهلًا أبرار! اضغطي <b>🌐 ترجم</b> بجانب أي سؤال لرؤية الترجمة العربية فورًا'),1800);
+};
+</script>
+</body>
+</html>
